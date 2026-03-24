@@ -126,7 +126,7 @@
 
 .tickets-table tbody tr {
     border-bottom: 1px solid var(--border);
-    cursor: pointer;
+    /* cursor: pointer; */
     transition: background 0.18s, transform 0.15s;
     position: relative;
 }
@@ -164,6 +164,11 @@
 
 .tickets-table tbody tr td:first-child {
     padding-left: 20px;
+    cursor: pointer;
+}
+
+.tickets-table tbody tr td:nth-child(2) {
+    cursor: pointer;
 }
 
 .tickets-table tbody tr td:last-child {
@@ -507,4 +512,79 @@
     background: rgba(59, 130, 246, 0.2);
     border-color: rgba(59, 130, 246, 0.6);
     transform: translateY(-1px);
+}
+
+.live-log {
+    background: var(--bg-elevated);
+    border: 1px solid #dde3ee;
+    border-radius: 8px;
+    padding: 10px 14px;
+    grid-column: 1 / -1;
+}
+
+.live-log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+/* .live-log-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-heading);
+} */
+
+.live-log-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.live-log-action-btn {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid #dde3ee;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+}
+
+.live-log-action-btn:hover,
+.live-log-action-btn.active {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #0b5abb;
+}
+
+.live-log-action-btn.active {
+    background: rgba(59, 130, 246, 0.18);
+}
+
+.live-log-body {
+    background: var(--bg-elevated);
+    border: 1px solid #dde3ee;
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.live-log-entry {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.live-log-entry-timestamp {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-sub);
+}
+
+.live-log-entry-message {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-sub);
 }

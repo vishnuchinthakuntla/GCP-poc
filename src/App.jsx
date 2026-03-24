@@ -6,6 +6,7 @@ import useAgentStore from './stores/useAgentStore'
 import Sidebar from './components/Sidebar/Sidebar'
 import PipelinesBar from './components/PipelinesBar/PipelinesBar'
 import TicketsTable from './components/TicketsTable/TicketsTable'
+import TicketsDrawer from './components/TicketsTable/TicketsDrawer'
 import './App.css'
 
 const App = () => {
@@ -48,6 +49,8 @@ const App = () => {
           ) : (
             <TicketsTable />
           )}
+
+          <TicketsDrawer />
         </main>
       </div>
     </div>

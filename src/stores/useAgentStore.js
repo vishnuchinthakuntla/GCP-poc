@@ -107,17 +107,17 @@ const INITIAL_AGENTS = AGENTS.map(a => ({
 }))
 
 const EMPTY_PANEL = {
-  queued:     { count: 0, items: [] },
+  queued: { count: 0, items: [] },
   inProgress: { count: 0, items: [] },
-  processed:  { count: 0, items: [] },
-  liveFeed:   { count: 0, items: [] },
-  loading:    false,
+  processed: { count: 0, items: [] },
+  liveFeed: { count: 0, items: [] },
+  loading: false,
 }
 
 const INITIAL_HEADER = {
   pipeline: { total: 0, succeeded: 0, failed: 0, running: 0, remaining: 0, pending_approval: 0, sla_breached: 0 },
-  tickets:  { P1: 0, P2: 0, P3: 0, P4: 0, total: 0, sla_breach: 0, human: 0 },
-  info:     { date: '', agent_count: 7, is_live: false, last_refresh: '' },
+  tickets: { P1: 0, P2: 0, P3: 0, P4: 0, total: 0, sla_breach: 0, human: 0 },
+  info: { date: '', agent_count: 7, is_live: false, last_refresh: '' },
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -128,18 +128,29 @@ const useAgentStore = create((set, get) => ({
 
   // ── State ─────────────────────────────────────────────────────────────────
 
-  agents:        INITIAL_AGENTS,
+  agents: INITIAL_AGENTS,
   selectedAgent: null,
-  panel:         EMPTY_PANEL,
-  header:        INITIAL_HEADER,
-  wsConnected:   false,
-  eventLog:      [],
+  panel: EMPTY_PANEL,
+  header: INITIAL_HEADER,
+  wsConnected: false,
+  eventLog: [],
+  selectedTicket: null,
 
   // Internal refs (not reactive)
-  _ws:                null,
-  _retryTimer:        null,
-  _fetchAgentsTimer:  null,
-  _fetchPanelTimer:   null,
+  _ws: null,
+  _retryTimer: null,
+  _fetchAgentsTimer: null,
+  _fetchPanelTimer: null,
+
+  // ── Ticket Drawer ───────────────────────────────────────────────────────────
+
+  openTicketDrawer: (ticket) => {
+    set({ selectedTicket: ticket })
+  },
+
+  closeTicketDrawer: () => {
+    set({ selectedTicket: null })
+  },
 
   // ── Agent Cards ───────────────────────────────────────────────────────────
 
@@ -177,10 +188,10 @@ const useAgentStore = create((set, get) => ({
 
     set({
       panel: {
-        queued:     { count: data.queued?.total      ?? 0, items: normalizeItems(data.queued?.items) },
+        queued: { count: data.queued?.total ?? 0, items: normalizeItems(data.queued?.items) },
         inProgress: { count: data.in_progress?.total ?? 0, items: normalizeItems(data.in_progress?.items) },
-        processed:  { count: data.processed?.total   ?? 0, items: normalizeItems(data.processed?.items) },
-        liveFeed:   { count: data.live_feed?.total   ?? 0, items: normalizeFeed(data.live_feed?.items) },
+        processed: { count: data.processed?.total ?? 0, items: normalizeItems(data.processed?.items) },
+        liveFeed: { count: data.live_feed?.total ?? 0, items: normalizeFeed(data.live_feed?.items) },
         loading: false,
       },
     })
@@ -191,8 +202,8 @@ const useAgentStore = create((set, get) => ({
   fetchHeader: async () => {
     const [pipeline, tickets, info] = await Promise.all([
       safeFetch('/api/header/pipeline', INITIAL_HEADER.pipeline),
-      safeFetch('/api/header/tickets',  INITIAL_HEADER.tickets),
-      safeFetch('/api/header/info',     INITIAL_HEADER.info),
+      safeFetch('/api/header/tickets', INITIAL_HEADER.tickets),
+      safeFetch('/api/header/info', INITIAL_HEADER.info),
     ])
     set({ header: { pipeline, tickets, info } })
   },
@@ -202,7 +213,7 @@ const useAgentStore = create((set, get) => ({
   connectWs: () => {
     const state = get()
     if (state._ws?.readyState === WebSocket.OPEN ||
-        state._ws?.readyState === WebSocket.CONNECTING) {
+      state._ws?.readyState === WebSocket.CONNECTING) {
       return
     }
 
@@ -242,8 +253,8 @@ const useAgentStore = create((set, get) => ({
             set(s => ({
               header: {
                 pipeline: data.pipeline || s.header.pipeline,
-                tickets:  data.tickets  || s.header.tickets,
-                info:     data.info     || s.header.info,
+                tickets: data.tickets || s.header.tickets,
+                info: data.info || s.header.info,
               },
             }))
           }
