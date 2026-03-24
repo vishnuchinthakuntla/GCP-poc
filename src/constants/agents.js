@@ -2,7 +2,7 @@ export const AGENTS = [
   {
     id: 'observer',
     label: 'OBSERVER AGENT',
-    count: 6,
+    count: 0,
     icon: '👁',
     bg: '#eef3ff',
     borderColor: '#3b5bdb',
@@ -11,7 +11,7 @@ export const AGENTS = [
   {
     id: 'rca',
     label: 'RCA AGENT',
-    count: 3,
+    count: 0,
     icon: '🔍',
     bg: '#fff8ee',
     borderColor: '#e67700',
@@ -20,7 +20,7 @@ export const AGENTS = [
   {
     id: 'decision',
     label: 'DECISION AGENT',
-    count: 6,
+    count: 0,
     icon: '🧠',
     bg: '#f9f0ff',
     borderColor: '#9c36b5',
@@ -38,7 +38,7 @@ export const AGENTS = [
   {
     id: 'dataquality',
     label: 'DATA QUALITY AGENT',
-    count: 3,
+    count: 0,
     icon: '✅',
     bg: '#f0fff4',
     borderColor: '#2f9e44',

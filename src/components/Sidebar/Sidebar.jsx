@@ -1,0 +1,53 @@
+import { AGENTS } from "../../constants/agents";
+import './Sidebar.css';
+import {
+    LayoutDashboard,
+    Eye,
+    Search,
+    Brain,
+    Wrench,
+    CheckCircle,
+    MessageSquare,
+    Shield
+} from 'lucide-react';
+import React from 'react';
+
+function toTitleCase(str) {
+    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+}
+
+const ICON_MAP = {
+    'observer': Eye,
+    'rca': Search,
+    'decision': Brain,
+    'selfhealing': Wrench,
+    'dataquality': CheckCircle,
+    'selfservice': MessageSquare,
+    'governance': Shield
+};
+
+export default function Sidebar({ open, onClickAgent }) {
+    return (
+        <aside className={`sidebar${open ? ' open' : ''}`}>
+            <button onClick={() => onClickAgent(null)}>
+                <LayoutDashboard size={18} />
+                Overview
+            </button>
+
+            <div className="sidebar-section">Agents</div>
+
+            {AGENTS.map((agent) => {
+                const Icon = ICON_MAP[agent.id] || Eye;
+                return (
+                    <button
+                        key={agent.id}
+                        onClick={() => onClickAgent(agent.id)}
+                    >
+                        <Icon className={`icon ${agent.id}`} size={18} />
+                        {toTitleCase(agent.label)}
+                    </button>
+                );
+            })}
+        </aside>
+    );
+}

@@ -1,0 +1,116 @@
+.sidebar-container {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+.sidebar {
+    border-right: 1px solid #dde3ee;
+    padding: 20px 0;
+    transform: translateX(-15rem);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s, border-color 0.35s, padding-inline 0.4s, transform 0.4s;
+    overflow-y: auto;
+    width: 0;
+    overflow-x: hidden;
+}
+
+.sidebar.open {
+    width: 15rem;
+    padding-inline: 12px;
+    transform: translateX(0);
+}
+
+.sidebar-section {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    color: #213248;
+    text-transform: uppercase;
+    padding: 12px 10px 6px;
+    transition: color 0.35s;
+}
+
+.sidebar button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 12px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #4a6580;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.sidebar button .icon {
+    font-size: 16px;
+}
+
+.sidebar button:hover {
+    background: rgba(79, 142, 247, 0.09);
+    transform: translateX(3px);
+}
+
+
+/* Individual colors */
+.icon {
+    width: 22px;
+    /* 🔥 bigger container */
+    height: 30px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Make icon bigger */
+.icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Observer */
+.icon.observer {
+    color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.12);
+}
+
+/* RCA */
+.icon.rca {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.12);
+}
+
+/* Decision */
+.icon.decision {
+    color: #ec4899;
+    background: rgba(236, 72, 153, 0.12);
+}
+
+/* Self-Healing */
+.icon.selfhealing {
+    color: #9ca3af;
+    background: rgba(156, 163, 175, 0.15);
+}
+
+/* Data Quality */
+.icon.dataquality {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+}
+
+/* Self-Service */
+.icon.selfservice {
+    color: #a78bfa;
+    background: rgba(167, 139, 250, 0.12);
+}
+
+/* Governance */
+.icon.governance {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.12);
+}
