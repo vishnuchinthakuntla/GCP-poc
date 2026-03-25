@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import './TicketsTable.css';
-import useAgentStore from '../../stores/useAgentStore';
-import { STATUS_CLS } from './TicketsDrawer';
+import React, { useState, useMemo } from "react";
+import "./TicketsTable.css";
+import useAgentStore from "../../stores/useAgentStore";
+import { STATUS_CLS } from "./TicketsDrawer";
 
 /* Helper: convert time → "2h 10m ago" */
 function timeAgo(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return "—";
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
 
   if (diff < 60) return `${diff}s`;
@@ -16,43 +16,38 @@ function timeAgo(dateStr) {
 }
 
 function TicketsTable() {
-  const tickets = useAgentStore(s => s.header.ticketsData);
-  const onOpenDrawer = useAgentStore(s => s.openTicketDrawer);
+  const tickets = useAgentStore((s) => s.header.ticketsData);
+  const onOpenDrawer = useAgentStore((s) => s.openTicketDrawer);
 
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState("all");
 
   // ✅ Transform YOUR backend → UI
   const normalizedTickets = useMemo(() => {
     return (tickets || []).map((t, idx) => {
-      const prio = t.severity || 'P3';
+      const prio = t.severity || "P3";
 
       return {
         id: t.ticket_id || `TKT-${idx}`,
         adoTicketId: t.ticket_id,
 
-        name: t.title || '—',
-        desc: t.description || '',
+        name: t.title || "—",
+        desc: t.description || "",
 
         prio: prio,
-        status: (t.status || 'open').toUpperCase(),
+        status: (t.status || "open").toUpperCase(),
 
         age: timeAgo(t.created_at),
-        ageCls:
-          prio === 'P1'
-            ? 'crit'
-            : prio === 'P2'
-            ? 'warn'
-            : 'ok',
+        ageCls: prio === "P1" ? "crit" : prio === "P2" ? "warn" : "ok",
 
-        domain: '—', // not available in API
-        source: 'ADF', // optional default
+        domain: "—", // not available in API
+        source: "ADF", // optional default
 
-        owner: t.assigned_to || 'Unassigned',
+        owner: t.assigned_to || "Unassigned",
 
         pipeline: t.title,
 
-        sla: 'OK',
-        slABreach: 'NO',
+        sla: "OK",
+        slABreach: "NO",
         ticketType: 0,
 
         raw: t, // keep original (useful for drawer)
@@ -62,32 +57,32 @@ function TicketsTable() {
 
   // ✅ Filters
   const filtered = useMemo(() => {
-    if (activeFilter === 'all') return normalizedTickets;
+    if (activeFilter === "all") return normalizedTickets;
 
-    if (activeFilter === 'SLA') {
-      return normalizedTickets.filter(t => t.slABreach === 'YES');
+    if (activeFilter === "SLA") {
+      return normalizedTickets.filter((t) => t.slABreach === "YES");
     }
 
-    if (activeFilter === 'HUMAN') {
-      return normalizedTickets.filter(t => t.ticketType === 1);
+    if (activeFilter === "HUMAN") {
+      return normalizedTickets.filter((t) => t.ticketType === 1);
     }
 
-    if (activeFilter === 'SH') {
-      return normalizedTickets.filter(t => t.ticketType === 2);
+    if (activeFilter === "SH") {
+      return normalizedTickets.filter((t) => t.ticketType === 2);
     }
 
-    return normalizedTickets.filter(t => t.prio === activeFilter);
+    return normalizedTickets.filter((t) => t.prio === activeFilter);
   }, [activeFilter, normalizedTickets]);
 
   const filters = [
-    { key: 'all', label: 'ALL' },
-    { key: 'P1', label: 'P1' },
-    { key: 'P2', label: 'P2' },
-    { key: 'P3', label: 'P3' },
-    { key: 'P4', label: 'P4' },
-    { key: 'SLA', label: 'SLA BREACH' },
-    { key: 'HUMAN', label: 'HUMAN' },
-    { key: 'SH', label: 'SELF-HEALING' },
+    { key: "all", label: "ALL" },
+    { key: "P1", label: "P1" },
+    { key: "P2", label: "P2" },
+    { key: "P3", label: "P3" },
+    { key: "P4", label: "P4" },
+    { key: "SLA", label: "SLA BREACH" },
+    { key: "HUMAN", label: "HUMAN" },
+    { key: "SH", label: "SELF-HEALING" },
   ];
 
   return (
@@ -97,10 +92,10 @@ function TicketsTable() {
         <div className="tickets-section-title">OPEN TICKETS</div>
 
         <div className="tickets-filters">
-          {filters.map(f => (
+          {filters.map((f) => (
             <button
               key={f.key}
-              className={`tf-btn ${activeFilter === f.key ? 'active' : ''}`}
+              className={`tf-btn ${activeFilter === f.key ? "active" : ""}`}
               onClick={() => setActiveFilter(f.key)}
             >
               {f.label}
@@ -129,7 +124,7 @@ function TicketsTable() {
           <tbody>
             {filtered.length === 0 ? (
               <tr className="no-data">
-                <td colSpan={9} style={{ textAlign: 'center', padding: 12 }}>
+                <td colSpan={9} style={{ textAlign: "center", padding: 12 }}>
                   No open tickets
                 </td>
               </tr>
@@ -142,11 +137,11 @@ function TicketsTable() {
                     animation: `feed-in .3s ${i * 0.04}s ease both`,
                   }}
                 >
-                  <td onClick={() => onOpenDrawer(t)}>
+                  <td onClick={() => onOpenDrawer(t.raw)}>
                     <span className="t-id">{t.adoTicketId}</span>
                   </td>
 
-                  <td onClick={() => onOpenDrawer(t)}>
+                  <td onClick={() => onOpenDrawer(t.raw)}>
                     <div className="t-name">{t.name}</div>
                   </td>
 
@@ -165,7 +160,9 @@ function TicketsTable() {
                   </td>
 
                   <td>
-                    <span className={`t-status ${STATUS_CLS[t.status] || 'ts-open'}`}>
+                    <span
+                      className={`t-status ${STATUS_CLS[t.status] || "ts-open"}`}
+                    >
                       {t.status}
                     </span>
                   </td>

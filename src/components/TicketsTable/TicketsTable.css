@@ -588,3 +588,14 @@
     font-weight: 700;
     color: var(--text-sub);
 }
+.td-card {
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.td-card.scroll {
+     max-height: 40vh;
+  overflow: auto;
+}

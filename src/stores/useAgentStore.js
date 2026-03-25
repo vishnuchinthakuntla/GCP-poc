@@ -233,29 +233,29 @@ const useAgentStore = create((set, get) => ({
   },
 
   // ── Header ────────────────────────────────────────────────────────────────
-fetchHeader: async () => {
-  console.log("🔥 Calling ALL APIs");
+  fetchHeader: async () => {
+    console.log("🔥 Calling ALL APIs");
 
-  const [pipeline, headerTickets, ticketsRes, info] = await Promise.all([
-    safeFetch('/api/header/pipeline', INITIAL_HEADER.pipeline),
-    safeFetch('/api/header/tickets', INITIAL_HEADER.tickets), // ✅ keep this
-    safeFetch('/api/tickets', {}), // ✅ NEW API
-    safeFetch('/api/header/info', INITIAL_HEADER.info),
-  ])
+    const [pipeline, headerTickets, ticketsRes, info] = await Promise.all([
+      safeFetch("/api/header/pipeline", INITIAL_HEADER.pipeline),
+      safeFetch("/api/header/tickets", INITIAL_HEADER.tickets), 
+      safeFetch("/api/tickets", {}), 
+      safeFetch("/api/header/info", INITIAL_HEADER.info),
+    ]);
 
-  console.log("✅ header tickets:", headerTickets);
-  console.log("✅ table tickets (/api/tickets):", ticketsRes);
+    console.log("✅ header tickets:", headerTickets);
+    console.log("✅ table tickets (/api/tickets):", ticketsRes);
 
-  set((s) => ({
-    header: {
-      ...s.header,
-      pipeline,
-      tickets: headerTickets || s.header.tickets, // ✅ summary stays
-      ticketsData: ticketsRes?.items || [],       // ✅ table data
-      info,
-    },
-  }))
-},
+    set((s) => ({
+      header: {
+        ...s.header,
+        pipeline,
+        tickets: headerTickets || s.header.tickets, 
+        ticketsData: ticketsRes?.items || [], 
+        info,
+      },
+    }));
+  },
   // ── WebSocket ─────────────────────────────────────────────────────────────
 
   connectWs: () => {
@@ -298,26 +298,26 @@ fetchHeader: async () => {
         }));
 
         // ── header_refresh / initial_state — use inline data, NO REST calls ──
-        if (type === 'header_refresh' || type === 'initial_state') {
-  if (data?.pipeline || data?.tickets || data?.items) {
-    set((s) => ({
-      header: {
-        ...s.header,
-        pipeline: data.pipeline || s.header.pipeline,
-        tickets: data.tickets || s.header.tickets,        // ✅ summary
-        ticketsData: data.items || s.header.ticketsData,  // ✅ table
-        info: data.info || s.header.info,
-      },
-    }))
-  }
+        if (type === "header_refresh" || type === "initial_state") {
+          if (data?.pipeline || data?.tickets || data?.items) {
+            set((s) => ({
+              header: {
+                ...s.header,
+                pipeline: data.pipeline || s.header.pipeline,
+                tickets: data.tickets || s.header.tickets,
+                ticketsData: data.items || s.header.ticketsData,
+                info: data.info || s.header.info,
+              },
+            }));
+          }
 
-  if (data?.agents) {
-    const merged = mergeAgents({ items: data.agents })
-    if (merged) set({ agents: merged })
-  }
+          if (data?.agents) {
+            const merged = mergeAgents({ items: data.agents });
+            if (merged) set({ agents: merged });
+          }
 
-  return
-}
+          return;
+        }
 
         // ── All other events — debounced REST fetches ──
         // Multiple events within 300ms trigger only ONE fetch each

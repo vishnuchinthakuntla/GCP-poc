@@ -1,108 +1,182 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import useAgentStore from "../../stores/useAgentStore";
+import "./TicketsTable.css";
 
 export const STATUS_CLS = {
-    'CRITICAL': 'ts-critical',
-    'HIGH': 'ts-high',
-    'MEDIUM': 'ts-medium',
-    'LOW': 'ts-low',
-    'OPEN': 'ts-open',
-    'IN PROGRESS': 'ts-inprogress',
-    'PENDING': 'ts-pending',
+  CRITICAL: "ts-critical",
+  HIGH: "ts-high",
+  MEDIUM: "ts-medium",
+  LOW: "ts-low",
+  OPEN: "ts-open",
+  "IN PROGRESS": "ts-inprogress",
+  PENDING: "ts-pending",
 };
 
 export default function TicketDrawer() {
-    const ticket = useAgentStore(s => s.selectedTicket)
-    const closeTicketDrawer = useAgentStore(s => s.closeTicketDrawer)
+  const ticket = useAgentStore((s) => s.selectedTicket);
+  const closeTicketDrawer = useAgentStore((s) => s.closeTicketDrawer);
 
-    useEffect(() => {
-        const handler = (e) => { if (e.key === 'Escape' && ticket) closeTicketDrawer(); };
-        document.addEventListener('keydown', handler);
-        return () => document.removeEventListener('keydown', handler);
-    }, [ticket, closeTicketDrawer]);
+  const [pipelineData, setPipelineData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
+  // ESC close
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === "Escape") closeTicketDrawer();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
+  const normalized = useMemo(() => {
     if (!ticket) return null;
 
+    return {
+      id: ticket.ticket_id,
+      title: ticket.title,
+      desc: ticket.description,
+      prio: ticket.severity,
+      status: ticket.status?.toUpperCase(),
+      owner: ticket.assigned_to || "Unassigned",
+      createdAt: ticket.created_at,
+      runId: ticket.run_id,
+    };
+  }, [ticket]);
 
-
-    let rcaDetails = null;
-    try { rcaDetails = JSON.parse(JSON.parse(ticket.rcaCause)); } catch { try { rcaDetails = JSON.parse(ticket.rcaCause); } catch { /* ignore */ } }
-
-    return (
-        <>
-            <div className={`ticket-drawer-overlay${ticket ? ' open' : ''}`} onClick={closeTicketDrawer}></div>
-            <div className={`ticket-drawer${ticket ? ' open' : ''}`}>
-                <div className="td-header">
-                    <div className="td-header-id">{ticket.id}</div>
-                    <div className="td-header-title">{ticket.name}</div>
-                    <div className="td-close" onClick={closeTicketDrawer}>✕</div>
-                </div>
-                <div className="td-body">
-                    <div className="td-hero">
-                        <span className={`td-prio-badge tdp-${ticket.prio.toLowerCase()}`}>{ticket.prio}</span>
-                        <div className="td-hero-info">
-                            <div className="td-hero-name">{ticket.name}</div>
-                            <div className="td-hero-desc">{ticket.desc}</div>
-                        </div>
-                    </div>
-                    <div>
-                        <div className="td-section-title">Ticket Details</div>
-                        <div className="td-grid">
-                            <div className="td-field"><div className="td-field-label">Status</div><div className="td-field-val"><span className={`t-status ${STATUS_CLS[ticket.status] || 'ts-open'}`}>{ticket.status}</span></div></div>
-                            <div className="td-field"><div className="td-field-label">Owner</div><div className="td-field-val" style={{ fontSize: 13 }}>{ticket.owner}</div></div>
-                            <div className="td-field"><div className="td-field-label">Age</div><div className="td-field-val" style={{ color: ticket.ageCls === 'crit' ? '#f43f5e' : ticket.ageCls === 'warn' ? '#f59e0b' : 'var(--text-sub)' }}>{ticket.age}</div></div>
-                            <div className="td-field"><div className="td-field-label">SLA</div><div className="td-field-val" style={{ color: ticket.sla === 'BREACHED' ? '#f43f5e' : ticket.sla === 'AT RISK' ? '#f59e0b' : '#10b981', fontWeight: ticket.sla === 'BREACHED' ? 800 : 700 }}>{ticket.sla}</div></div>
-                            {rcaDetails && (
-                                <>
-                                    <div className="td-field" style={{ gridColumn: '1/-1' }}>
-                                        <div className="td-field-label">Root Cause</div>
-                                        <div className="td-field-val" style={{ fontSize: 12, whiteSpace: 'normal' }}>{rcaDetails.rootCause}</div>
-                                    </div>
-                                    <div className="td-field" style={{ gridColumn: '1/-1' }}>
-                                        <div className="td-field-label">RCA Details</div>
-                                        <div className="td-field-val" style={{ fontSize: 12, whiteSpace: 'normal', maxHeight: 160, overflowY: 'auto', paddingRight: 6 }}>
-                                            <p><strong>Pipeline:</strong> {rcaDetails.pipelineName}</p>
-                                            <p><strong>Classification:</strong> {rcaDetails.classification}</p>
-                                            <p><strong>Severity:</strong> {rcaDetails.severity}</p>
-                                            <p><strong>Category:</strong> {rcaDetails.rootCauseCategory}</p>
-                                            <p><strong>Confidence:</strong> {rcaDetails.confidence}</p>
-                                            {rcaDetails.immediateRecommendations && (
-                                                <div><strong>Immediate Recommendations:</strong>
-                                                    <ul>{rcaDetails.immediateRecommendations.map((r, i) => <li key={i}>{r}</li>)}</ul>
-                                                </div>
-                                            )}
-                                            {rcaDetails.preventiveRecommendations && (
-                                                <div><strong>Preventive Recommendations:</strong>
-                                                    <ul>{rcaDetails.preventiveRecommendations.map((r, i) => <li key={i}>{r}</li>)}</ul>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                            <div className="live-log">
-                                <div className="live-log-header">
-                                    <div className="live-log-title td-field-label">Live Log</div>
-                                    {/* <div className="live-log-actions">
-                                        <button className="live-log-action-btn">Clear</button>
-                                        <button className="live-log-action-btn">Copy</button>
-                                    </div> */}
-                                </div>
-                                <div className="live-log-body">
-                                    <div className="live-log-entry">
-                                        <div className="live-log-entry-timestamp">2022-01-01 12:00:00</div>
-                                        <div className="live-log-entry-message">Log message</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button className="td-action-btn" onClick={() => window.open(``, '_blank')}>
-                        VIEW TICKET
-                    </button>
-                </div>
-            </div>
-        </>
+  const age = useMemo(() => {
+    if (!normalized?.createdAt) return "—";
+    const diff = Math.floor(
+      (Date.now() - new Date(normalized.createdAt)) / 1000
     );
+    if (diff < 60) return `${diff}s`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    return `${Math.floor(diff / 86400)}d`;
+  }, [normalized]);
+
+  // Pipeline API
+  useEffect(() => {
+    if (!normalized?.runId) return;
+
+    const fetchPipeline = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/pipelines/${normalized.runId}`);
+        const data = await res.json();
+        setPipelineData(data);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPipeline();
+  }, [normalized?.runId]);
+
+  if (!normalized) return null;
+
+  const workflow = pipelineData?.workflow || {};
+  const run = pipelineData?.run || {};
+
+  return (
+    <>
+      <div className="ticket-drawer-overlay" onClick={closeTicketDrawer} />
+
+      <div className="ticket-drawer open">
+        {/* HEADER */}
+        <div className="td-header">
+          <div>{normalized.id}</div>
+          <div>{normalized.title}</div>
+          <div onClick={closeTicketDrawer}>✕</div>
+        </div>
+
+        <div className="td-body">
+          {/* HERO */}
+          <div className="td-hero">
+            <span className={`td-prio-badge tdp-${normalized.prio?.toLowerCase()}`}>
+              {normalized.prio}
+            </span>
+
+            <div>
+              <div className="td-hero-name">{normalized.title}</div>
+              <div className="td-hero-desc">{normalized.desc}</div>
+            </div>
+          </div>
+
+          {/* TICKET DETAILS */}
+          <div className="td-section-title">Ticket Details</div>
+          <div className="td-grid">
+            <div className="td-field">
+              <div>Status</div>
+              <b>{normalized.status}</b>
+            </div>
+            <div className="td-field">
+              <div>Owner</div>
+              <b>{normalized.owner}</b>
+            </div>
+            <div className="td-field">
+              <div>Age</div>
+              <b>{age}</b>
+            </div>
+            <div className="td-field">
+              <div>Severity</div>
+              <b>{normalized.prio}</b>
+            </div>
+          </div>
+
+          {/* ROOT CAUSE */}
+          <div className="td-section-title">Root Cause</div>
+          <div className="td-card">
+            {run.error_message || "No error info"}
+          </div>
+
+          {/* RCA DETAILS */}
+          <div className="td-section-title">RCA Details</div>
+          <div className="td-card scroll">
+            <p><b>Pipeline:</b> {run.pipeline_name}</p>
+            <p><b>Status:</b> {workflow.status}</p>
+            <p><b>Severity:</b> {workflow.severity}</p>
+            <p><b>Confidence:</b> {workflow.confidence}</p>
+            <p><b>SLA Breach:</b> {workflow.sla_breached ? "YES" : "NO"}</p>
+
+            <p><b>Summary:</b></p>
+            <p>{workflow.observer_summary || "No summary"}</p>
+          </div>
+
+          {/* 🔥 EXECUTION FLOW */}
+          <div className="td-section-title">Execution Flow</div>
+
+          <div className="flow-container">
+            {(pipelineData?.agent_logs || []).map((log, i) => {
+              const level = (log.level || "info").toLowerCase();
+              const time = new Date(log.logged_at).toLocaleTimeString();
+
+              return (
+                <div key={log.log_id} className={`flow-step ${level}`}>
+                  <div className="flow-line">
+                    <div className={`flow-dot ${level}`} />
+                    {i !== pipelineData.agent_logs.length - 1 && (
+                      <div className="flow-connector" />
+                    )}
+                  </div>
+
+                  <div className="flow-content">
+                    <div className="flow-header">
+                      <span>{log.agent_node}</span>
+                      <span>{time}</span>
+                    </div>
+                    <div className={`flow-message ${level}`}>
+                      {log.message}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </div>
+    </>
+  );
 }
