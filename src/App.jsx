@@ -7,12 +7,14 @@ import Sidebar from './components/Sidebar/Sidebar'
 import PipelinesBar from './components/PipelinesBar/PipelinesBar'
 import TicketsTable from './components/TicketsTable/TicketsTable'
 import TicketsDrawer from './components/TicketsTable/TicketsDrawer'
+import Charts from './components/Charts/Charts'
 import './App.css'
 
 const App = () => {
   const init = useAgentStore(s => s.init)
   const destroy = useAgentStore(s => s.destroy)
   const selectedAgent = useAgentStore(s => s.selectedAgent)
+  const selectedTicket = useAgentStore(s => s.selectedTicket)
   const agents = useAgentStore(s => s.agents)
   const selectAgent = useAgentStore(s => s.selectAgent)
   const closePanel = useAgentStore(s => s.closePanel)
@@ -50,7 +52,9 @@ const App = () => {
             <TicketsTable />
           )}
 
-          <TicketsDrawer />
+          {selectedTicket && <TicketsDrawer />}
+
+          <Charts />
         </main>
       </div>
     </div>

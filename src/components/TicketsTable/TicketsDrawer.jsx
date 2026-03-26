@@ -22,7 +22,7 @@ export default function TicketDrawer() {
   // ESC close
   useEffect(() => {
     const handler = (e) => {
-      if (e.key === "Escape") closeTicketDrawer();
+      if (e.key === "Escape" && ticket) closeTicketDrawer();
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -30,6 +30,8 @@ export default function TicketDrawer() {
 
   const normalized = useMemo(() => {
     if (!ticket) return null;
+
+    console.log(typeof ticket.description)
 
     return {
       id: ticket.ticket_id,
@@ -81,7 +83,7 @@ export default function TicketDrawer() {
 
   return (
     <>
-      <div className="ticket-drawer-overlay" onClick={closeTicketDrawer} />
+      <div className="ticket-drawer-overlay" onClick={() => ticket && closeTicketDrawer()} />
 
       <div className="ticket-drawer open">
         {/* HEADER */}
@@ -100,14 +102,18 @@ export default function TicketDrawer() {
 
             <div>
               <div className="td-hero-name">{normalized.title}</div>
-              <div className="td-hero-desc">{normalized.desc}</div>
+              <div className="td-hero-desc">{normalized.desc.split("\n").map(line => <>{line}<br /></>)}</div>
             </div>
           </div>
 
           {/* TICKET DETAILS */}
           <div className="td-section-title">Ticket Details</div>
           <div className="td-grid">
-            <div className="td-field">
+            <div className="td-field"><div className="td-field-label">Status</div><div className="td-field-val"><span className={`t-status ${STATUS_CLS[normalized.status] || 'ts-open'}`}>{normalized.status}</span></div></div>
+            <div className="td-field"><div className="td-field-label">Owner</div><div className="td-field-val" style={{ fontSize: 13 }}>{normalized.owner}</div></div>
+            <div className="td-field"><div className="td-field-label">Age</div><div className="td-field-val" style={{ color: normalized.ageCls === 'crit' ? '#f43f5e' : normalized.ageCls === 'warn' ? '#f59e0b' : 'var(--text-sub)' }}>{age}</div></div>
+            <div className="td-field"><div className="td-field-label">SLA</div><div className="td-field-val" style={{ color: normalized.sla === 'BREACHED' ? '#f43f5e' : normalized.sla === 'AT RISK' ? '#f59e0b' : '#10b981', fontWeight: normalized.sla === 'BREACHED' ? 800 : 700 }}>{normalized.prio}</div></div>
+            {/* <div className="td-field">
               <div>Status</div>
               <b>{normalized.status}</b>
             </div>
@@ -122,7 +128,7 @@ export default function TicketDrawer() {
             <div className="td-field">
               <div>Severity</div>
               <b>{normalized.prio}</b>
-            </div>
+            </div> */}
           </div>
 
           {/* ROOT CAUSE */}
