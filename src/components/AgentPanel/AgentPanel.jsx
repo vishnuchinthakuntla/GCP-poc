@@ -4,6 +4,7 @@ import './AgentPanel.css'
 import { AGENTS } from '../../constants/agents';
 import SelfServicePanel from './SelfServicePanel';
 import GovernancePanel from './GovernancePanel';
+import ApprovalAgent from './ApprovalAgent';
 
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -195,6 +196,7 @@ function AgentPanel() {
 
   if (selectedAgent === 'selfservice') return <SelfServicePanel />
   if (selectedAgent === 'governance') return <GovernancePanel />
+  if (selectedAgent === 'approval') return <ApprovalAgent />
 
   return (
     <div
