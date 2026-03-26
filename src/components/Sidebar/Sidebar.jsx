@@ -23,7 +23,8 @@ const ICON_MAP = {
     'selfhealing': Wrench,
     'dataquality': CheckCircle,
     'selfservice': MessageSquare,
-    'governance': Shield
+    'governance': Shield,
+    'approval': CheckCircle,
 };
 
 export default function Sidebar({ open, onClickAgent }) {

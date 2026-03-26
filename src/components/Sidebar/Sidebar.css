@@ -119,3 +119,7 @@
     color: #3b82f6;
     background: rgba(59, 130, 246, 0.12);
 }
+.icon.approval {
+    color: #25c271;
+    background: rgba(37, 194, 113, 0.12);
+}

@@ -6,9 +6,11 @@ import './AgentGrid.css'
 const AgentGrid = ({ selectedId, onSelect }) => {
   const agents = useAgentStore(s => s.agents)
 
-  return (
-    <div className="score-grid" role="tablist" aria-label="Agent selector">
-      {agents.map(agent => (
+ return (
+  <div className="score-grid" role="tablist" aria-label="Agent selector">
+    {agents
+      .filter(agent => agent.id !== 'approval') // 👈 hide approval
+      .map(agent => (
         <AgentCard
           key={agent.id}
           agent={agent}
@@ -16,8 +18,8 @@ const AgentGrid = ({ selectedId, onSelect }) => {
           onClick={() => onSelect(agent.id === selectedId ? null : agent.id)}
         />
       ))}
-    </div>
-  )
+  </div>
+);
 }
 
 export default AgentGrid
