@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Header from './components/Header/Header'
 import AgentGrid from './components/AgentGrid/AgentGrid'
-import ObserverPanel from './components/ObserverPanel/ObserverPanel'
+import AgentPanel from './components/AgentPanel/AgentPanel'
 import useAgentStore from './stores/useAgentStore'
 import Sidebar from './components/Sidebar/Sidebar'
 import PipelinesBar from './components/PipelinesBar/PipelinesBar'
@@ -43,7 +43,7 @@ const App = () => {
         />
 
         {selectedAgent && agent ? (
-          <ObserverPanel
+          <AgentPanel
             agentId={selectedAgent}
             agentLabel={agent.label}
             agentIcon={agent.icon}
