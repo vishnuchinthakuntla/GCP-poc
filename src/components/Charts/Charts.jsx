@@ -2,13 +2,13 @@ import { useRef } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import React from 'react';
+import useAgentStore from '../../stores/useAgentStore';
 import './Charts.css';
 
-export const sampleFormattedChartData = [
-    { name: 'P1', y: 2, color: '#F43F5E' },
-    { name: 'P2', y: 2, color: '#F5A524' },
-    { name: 'P3', y: 1, color: '#4F8EF7' },
-    { name: 'P4', y: 1, color: '#10D9A0' },
+/*
+export const initialTrendData = [
+    { name: 'P1', y: 0, color: '#F43F5E' },
+    { name: 'P2', y: 0, color: '#F5A524' },
 ];
 
 export const sampleTrendData = {
@@ -20,16 +20,64 @@ export const sampleTrendData = {
         { name: 'P4', data: [2, 3, 1, 4, 2, 3, 2] },
     ],
 };
+*/
 
-function Charts({ ticketChartData, trendData }) {
+/** Build { categories, series } for the last-7-days bar chart from raw tickets. */
+function buildTrendData(tickets) {
+    const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const PRIORITIES = ['P1', 'P2', 'P3', 'P4'];
+
+    // Build an array of the last 7 dates (oldest → newest)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - (6 - i)); // 6 days ago → today
+        return d;
+    });
+
+    const categories = days.map(d => `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`);
+
+    // Initialise counts: { P1: [0,0,0,0,0,0,0], P2: [...], ... }
+    const counts = Object.fromEntries(PRIORITIES.map(p => [p, new Array(7).fill(0)]));
+
+    (tickets || []).forEach(t => {
+        const prio = t.severity || 'P3';
+        if (!counts[prio]) return; // ignore unknown priorities
+
+        const created = new Date(t.created_at);
+        created.setHours(0, 0, 0, 0);
+
+        // Find which bucket (0-6) this ticket falls into
+        const diffMs = created.getTime() - days[0].getTime();
+        const idx = Math.floor(diffMs / 86400000); // ms → days
+        if (idx >= 0 && idx < 7) counts[prio][idx]++;
+    });
+
+    return {
+        categories,
+        series: PRIORITIES.map(p => ({ name: p, data: counts[p] })),
+    };
+}
+
+function Charts() {
+    const ticketStats = useAgentStore(s => s.header.tickets)
+    const ticketsData = useAgentStore(s => s.header.ticketsData)
     const barChartRef = useRef(null);
     const pieChartRef = useRef(null);
+
+    const pieChartData = [
+        { name: 'P1', y: ticketStats.P1, color: '#F43F5E' },
+        { name: 'P2', y: ticketStats.P2, color: '#F5A524' },
+    ]
+
+    const trendData = buildTrendData(ticketsData);
 
     const barOptions = {
         chart: { type: 'column', backgroundColor: 'transparent', borderRadius: 10, style: { fontFamily: 'DM Sans,sans-serif' } },
         title: { text: '' },
         xAxis: {
-            categories: sampleTrendData?.categories || [],
+            categories: trendData?.categories || [],
             labels: { style: { color: '#64748B', fontSize: '11px' } },
             lineColor: 'rgba(14,23,38,0.06)', tickColor: 'transparent', gridLineColor: 'transparent',
         },
@@ -54,7 +102,7 @@ function Charts({ ticketChartData, trendData }) {
                 slicedOffset: 5,
             },
         },
-        series: [{ type: 'pie', name: 'Tickets', data: sampleFormattedChartData.map((d) => ({ name: d.name, y: d.y, color: d.color })) }],
+        series: [{ type: 'pie', name: 'Tickets', data: pieChartData.map((d) => ({ name: d.name, y: d.y, color: d.color })) }],
         credits: { enabled: false },
     };
 

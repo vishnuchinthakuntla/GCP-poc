@@ -40,7 +40,7 @@ function TicketsTable() {
         ageCls: prio === "P1" ? "crit" : prio === "P2" ? "warn" : "ok",
 
         domain: "—", // not available in API
-        source: "ADF", // optional default
+        source: "GCP", // optional default
 
         owner: t.assigned_to || "Unassigned",
 
@@ -137,12 +137,13 @@ function TicketsTable() {
                   style={{
                     animation: `feed-in .3s ${i * 0.04}s ease both`,
                   }}
+                  onClick={() => onOpenDrawer(t.raw)}
                 >
-                  <td onClick={() => onOpenDrawer(t.raw)}>
+                  <td>
                     <span className="t-id">{t.adoTicketId}</span>
                   </td>
 
-                  <td onClick={() => onOpenDrawer(t.raw)}>
+                  <td>
                     <div className="t-name">{t.name}</div>
                   </td>
 

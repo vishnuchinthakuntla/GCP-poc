@@ -4,12 +4,16 @@ import './PipelinesBar.css'
 
 /* ── sub-components ── */
 
-const TicketBadge = ({ label, count, border_color, num_color, pill_class }) => (
-    <div className={`p-pill ${pill_class === 'SLA Breach' ? 'sla-pill' : pill_class === 'Human' ? 'p1-human' : `${pill_class.toLowerCase()}-pill`}`}>
-        <span className="p-label">{label}</span>
-        <span className="p-count" style={{ color: num_color }}>{count}</span>
-    </div>
-)
+const TicketBadge = ({ label, count, border_color, num_color, pill_class }) => {
+    const setActiveFilter = useAgentStore(s => s.setActiveFilter)
+
+    return (
+        <div className={`p-pill ${pill_class === 'SLA Breach' ? 'sla-pill' : pill_class === 'Human' ? 'p1-human' : `${pill_class.toLowerCase()}-pill`}`} onClick={() => setActiveFilter(label === 'SLA Breach' ? 'SLA' : label === 'Human' ? 'HUMAN' : label)}>
+            <span className="p-label">{label}</span>
+            <span className="p-count" style={{ color: num_color }}>{count}</span>
+        </div>
+    )
+}
 
 const StatBox = ({ value, label, color }) => (
     <div className="stat-box">

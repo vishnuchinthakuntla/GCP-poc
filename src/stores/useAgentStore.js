@@ -16,7 +16,6 @@ async function safeFetch(url, fallback) {
 
 function getWsUrl() {
   const proto = window.location.protocol === "https:" ? "wss" : "ws";
-  console.log(window.location.host)
   return `${proto}://${window.location.host}/ws/events`;
 }
 

@@ -42,6 +42,7 @@ export default function TicketDrawer() {
       owner: ticket.assigned_to || "Unassigned",
       createdAt: ticket.created_at,
       runId: ticket.run_id,
+      url: ticket.url || "",
     };
   }, [ticket]);
 
@@ -83,14 +84,14 @@ export default function TicketDrawer() {
 
   return (
     <>
-      <div className="ticket-drawer-overlay" onClick={() => ticket && closeTicketDrawer()} />
+      <div className={`ticket-drawer-overlay ${ticket ? "open" : ""}`} onClick={() => ticket && closeTicketDrawer()} />
 
-      <div className="ticket-drawer open">
+      <div className={`ticket-drawer ${ticket ? "open" : ""}`}>
         {/* HEADER */}
         <div className="td-header">
-          <div>{normalized.id}</div>
-          <div>{normalized.title}</div>
-          <div onClick={closeTicketDrawer}>✕</div>
+          <div className="td-header-id">{normalized.id}</div>
+          <div className="td-header-title">{normalized.title}</div>
+          <div className="td-close" onClick={closeTicketDrawer}>✕</div>
         </div>
 
         <div className="td-body">
@@ -180,7 +181,9 @@ export default function TicketDrawer() {
               );
             })}
           </div>
-
+          <button className="td-action-btn" onClick={() => window.open(normalized.url, '_blank')}>
+            VIEW TICKET
+          </button>
         </div>
       </div>
     </>

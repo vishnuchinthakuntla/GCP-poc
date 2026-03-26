@@ -44,7 +44,8 @@ export default function Sidebar({ open, onClickAgent }) {
                         key={agent.id}
                         onClick={() => onClickAgent(agent.id)}
                     >
-                        <Icon className={`icon ${agent.id}`} size={18} />
+                        {/* <Icon className={`icon ${agent.id}`} size={18} /> */}
+                        <span className="icon">{agent.icon}</span>
                         {toTitleCase(agent.label)}
                     </button>
                 );
