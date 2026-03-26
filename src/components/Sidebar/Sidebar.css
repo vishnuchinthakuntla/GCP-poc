@@ -1,30 +1,28 @@
-.sidebar-container {
-    display: flex;
-    flex-direction: row;
-    height: 100%;
-}
-
 .sidebar {
-    border-right: 1px solid #dde3ee;
-    padding: 20px 0;
-    transform: translateX(-15rem);
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s, border-color 0.35s, padding-inline 0.4s, transform 0.4s;
+    position: fixed;
+    top: var(--nav-h);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    padding: 20px 12px;
+    transform: translateX(calc(-1 * var(--sidebar-w)));
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s, border-color 0.35s;
+    z-index: 90;
     overflow-y: auto;
-    width: 0;
-    overflow-x: hidden;
 }
 
 .sidebar.open {
-    width: 15rem;
-    padding-inline: 12px;
     transform: translateX(0);
+    background: white;
 }
 
 .sidebar-section {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1.3px;
-    color: #213248;
+    color: var(--sidebar-section);
     text-transform: uppercase;
     padding: 12px 10px 6px;
     transition: color 0.35s;
@@ -32,18 +30,19 @@
 
 .sidebar button {
     display: flex;
+    width: 100%;
     align-items: center;
+    background: transparent;
     gap: 10px;
-    padding: 12px 12px;
+    padding: 10px 12px;
     border: none;
     border-radius: 8px;
     text-decoration: none;
-    color: #4a6580;
+    color: var(--sidebar-link);
     font-size: 14px;
     font-weight: 500;
     transition: background 0.2s, color 0.2s, transform 0.2s;
     margin-bottom: 2px;
-    white-space: nowrap;
 }
 
 .sidebar button .icon {
@@ -51,9 +50,15 @@
 }
 
 .sidebar button:hover {
-    background: rgba(79, 142, 247, 0.09);
+    background: var(--sidebar-link-hover-bg);
     transform: translateX(3px);
 }
+
+.sidebar button svg {
+    color: var(--sidebar-icon);
+    transition: color 0.2s;
+}
+
 
 
 /* Individual colors */
@@ -92,13 +97,13 @@
 }
 
 /* Self-Healing */
-.icon.selfhealing {
+.icon.healing {
     color: #9ca3af;
     background: rgba(156, 163, 175, 0.15);
 }
 
 /* Data Quality */
-.icon.dataquality {
+.icon.quality {
     color: #22c55e;
     background: rgba(34, 197, 94, 0.12);
 }

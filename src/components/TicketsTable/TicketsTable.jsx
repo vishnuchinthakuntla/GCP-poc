@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import "./TicketsTable.css";
 import useAgentStore from "../../stores/useAgentStore";
 import { STATUS_CLS } from "./TicketsDrawer";
@@ -18,8 +18,8 @@ function timeAgo(dateStr) {
 function TicketsTable() {
   const tickets = useAgentStore((s) => s.header.ticketsData);
   const onOpenDrawer = useAgentStore((s) => s.openTicketDrawer);
-
-  const [activeFilter, setActiveFilter] = useState("all");
+  const activeFilter = useAgentStore((s) => s.activeFilter);
+  const setActiveFilter = useAgentStore((s) => s.setActiveFilter);
 
   // ✅ Transform YOUR backend → UI
   const normalizedTickets = useMemo(() => {
@@ -90,17 +90,18 @@ function TicketsTable() {
       {/* Header */}
       <div className="tickets-section-header">
         <div className="tickets-section-title">OPEN TICKETS</div>
-
-        <div className="tickets-filters">
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              className={`tf-btn ${activeFilter === f.key ? "active" : ""}`}
-              onClick={() => setActiveFilter(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="tickets-filters">
+            {filters.map((f) => (
+              <button
+                key={f.key}
+                className={`tf-btn ${activeFilter === f.key ? "active" : ""}`}
+                onClick={() => setActiveFilter(f.key)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

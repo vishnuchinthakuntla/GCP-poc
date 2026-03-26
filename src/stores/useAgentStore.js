@@ -16,6 +16,7 @@ async function safeFetch(url, fallback) {
 
 function getWsUrl() {
   const proto = window.location.protocol === "https:" ? "wss" : "ws";
+  console.log(window.location.host)
   return `${proto}://${window.location.host}/ws/events`;
 }
 
@@ -158,12 +159,19 @@ const useAgentStore = create((set, get) => ({
   wsConnected: false,
   eventLog: [],
   selectedTicket: null,
+  activeFilter: "all",
 
   // Internal refs (not reactive)
   _ws: null,
   _retryTimer: null,
   _fetchAgentsTimer: null,
   _fetchPanelTimer: null,
+
+  // ── Filter ──────────────────────────────────────────────────────────
+
+  setActiveFilter: (filter) => {
+    set({ activeFilter: filter });
+  },
 
   // ── Ticket Drawer ───────────────────────────────────────────────────────────
 
@@ -238,8 +246,8 @@ const useAgentStore = create((set, get) => ({
 
     const [pipeline, headerTickets, ticketsRes, info] = await Promise.all([
       safeFetch("/api/header/pipeline", INITIAL_HEADER.pipeline),
-      safeFetch("/api/header/tickets", INITIAL_HEADER.tickets), 
-      safeFetch("/api/tickets", {}), 
+      safeFetch("/api/header/tickets", INITIAL_HEADER.tickets),
+      safeFetch("/api/tickets", {}),
       safeFetch("/api/header/info", INITIAL_HEADER.info),
     ]);
 
@@ -250,8 +258,8 @@ const useAgentStore = create((set, get) => ({
       header: {
         ...s.header,
         pipeline,
-        tickets: headerTickets || s.header.tickets, 
-        ticketsData: ticketsRes?.items || [], 
+        tickets: headerTickets || s.header.tickets,
+        ticketsData: ticketsRes?.items || [],
         info,
       },
     }));

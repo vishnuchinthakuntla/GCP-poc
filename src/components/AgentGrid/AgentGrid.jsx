@@ -7,7 +7,7 @@ const AgentGrid = ({ selectedId, onSelect }) => {
   const agents = useAgentStore(s => s.agents)
 
   return (
-    <div className="agent-grid" role="tablist" aria-label="Agent selector">
+    <div className="score-grid" role="tablist" aria-label="Agent selector">
       {agents.map(agent => (
         <AgentCard
           key={agent.id}

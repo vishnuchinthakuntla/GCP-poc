@@ -4,11 +4,11 @@ import './PipelinesBar.css'
 
 /* ── sub-components ── */
 
-const TicketBadge = ({ label, count, border_color, num_color }) => (
-    <span className="ticket-badge" style={{ borderColor: border_color }}>
-        <span className="ticket-badge__label">{label}</span>
-        <span className="ticket-badge__count" style={{ color: num_color }}>{count}</span>
-    </span>
+const TicketBadge = ({ label, count, border_color, num_color, pill_class }) => (
+    <div className={`p-pill ${pill_class === 'SLA Breach' ? 'sla-pill' : pill_class === 'Human' ? 'p1-human' : `${pill_class.toLowerCase()}-pill`}`}>
+        <span className="p-label">{label}</span>
+        <span className="p-count" style={{ color: num_color }}>{count}</span>
+    </div>
 )
 
 const StatBox = ({ value, label, color }) => (
@@ -22,12 +22,12 @@ const StatBox = ({ value, label, color }) => (
 
 function buildTicketBadges(tickets) {
     return [
-        { label: 'P1', count: tickets.P1 ?? 0, border_color: '#e03131', num_color: '#e03131' },
-        { label: 'P2', count: tickets.P2 ?? 0, border_color: '#e67700', num_color: '#e67700' },
-        { label: 'P3', count: tickets.P3 ?? 0, border_color: '#3b5bdb', num_color: '#3b5bdb' },
-        { label: 'P4', count: tickets.P4 ?? 0, border_color: '#868e96', num_color: '#868e96' },
-        { label: 'SLA Breach', count: tickets.sla_breach ?? 0, border_color: '#e03131', num_color: '#e03131' },
-        { label: 'Human', count: tickets.human ?? 0, border_color: '#9c36b5', num_color: '#9c36b5' },
+        { label: 'P1', count: tickets.P1 ?? 0 },
+        { label: 'P2', count: tickets.P2 ?? 0 },
+        { label: 'P3', count: tickets.P3 ?? 0 },
+        { label: 'P4', count: tickets.P4 ?? 0 },
+        { label: 'SLA Breach', count: tickets.sla_breach ?? 0 },
+        { label: 'Human', count: tickets.human ?? 0 },
     ]
 }
 
@@ -42,24 +42,40 @@ function PipelinesBar() {
     return (
         <>
             {/* tickets + pipeline bar */}
-            <div className="header__tickets-bar">
-                <span className="header__tickets-label">Tickets</span>
+            <div className='page-header'>
+                <div className='page-header-left'>
+                    <div className="ticker-counts">
+                        <span className="ticker-counts-label">Tickets</span>
 
-                <div className="header__tickets-list">
-                    {ticketBadges.map(t => <TicketBadge key={t.label} {...t} />)}
+                        {ticketBadges.map(t => <TicketBadge pill_class={t.label} key={t.label} {...t} />)}
+
+                    </div>
                 </div>
 
-                <div className="header__pipeline">
-                    <div className="header__pipeline-label">
-                        <div className="header__pipeline-date">{info.date || ''}</div>
-                        <div className="header__pipeline-title">Pipeline Run Summary</div>
+                <div className="ph-pipeline">
+                    <div className="ph-pl-title">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            <div>{info.date}</div>
+                            <div>Pipeline Run Summary</div>
+                        </div>
+                        <div className="ph-pl-sep"></div>
+                        <div className="ph-pl-cards">
+                            <div className="ph-pl-card ph-pl-done">
+                                <div className="ph-pl-val">{pipeline.succeeded}</div>
+                                <div className="ph-pl-lbl">COMPLETED</div>
+                            </div>
+                            <div className="ph-pl-sep"></div>
+                            <div className="ph-pl-card ph-pl-total">
+                                <div className="ph-pl-val">{pipeline.total}</div>
+                                <div className="ph-pl-lbl">TOTAL</div>
+                            </div>
+                            <div className="ph-pl-sep"></div>
+                            <div className="ph-pl-card ph-pl-rem">
+                                <div className="ph-pl-val">{pipeline.remaining}</div>
+                                <div className="ph-pl-lbl">REMAINING</div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="header__pipeline-divider" />
-                    <StatBox value={pipeline.succeeded ?? 0} label="Completed" color="#2f9e44" />
-                    <div className="header__pipeline-divider" />
-                    <StatBox value={pipeline.total ?? 0} label="Total" color="#1a3a8f" />
-                    <div className="header__pipeline-divider" />
-                    <StatBox value={pipeline.remaining ?? 0} label="Remaining" color="#e67700" />
                 </div>
             </div>
         </>

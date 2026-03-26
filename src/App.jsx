@@ -8,6 +8,7 @@ import PipelinesBar from './components/PipelinesBar/PipelinesBar'
 import TicketsTable from './components/TicketsTable/TicketsTable'
 import TicketsDrawer from './components/TicketsTable/TicketsDrawer'
 import Charts from './components/Charts/Charts'
+import Ticker from './components/Ticker'
 import './App.css'
 
 const App = () => {
@@ -29,34 +30,34 @@ const App = () => {
 
   return (
     <div className="app">
-      <Header onMenuToggle={() => setIsOpen(!isOpen)} />
+      <Header open={isOpen} onMenuToggle={() => setIsOpen(!isOpen)} />
+      <Sidebar open={isOpen} onClickAgent={selectAgent} />
 
-      <div className='sidebar-container'>
-        <Sidebar open={isOpen} onClickAgent={selectAgent} />
-        <main className="app__main">
-          <PipelinesBar />
-          <AgentGrid
-            selectedId={selectedAgent}
-            onSelect={(id) => selectAgent(selectedAgent === id ? null : id)}
+      <main className={`main${isOpen ? ' shifted' : ''}`}>
+        <PipelinesBar />
+
+        <Ticker />
+        <AgentGrid
+          selectedId={selectedAgent}
+          onSelect={(id) => selectAgent(selectedAgent === id ? null : id)}
+        />
+
+        {selectedAgent && agent ? (
+          <ObserverPanel
+            agentId={selectedAgent}
+            agentLabel={agent.label}
+            agentIcon={agent.icon}
+            isActive={agent.status === 'active'}
+            onClose={closePanel}
           />
+        ) : (
+          <TicketsTable />
+        )}
 
-          {selectedAgent && agent ? (
-            <ObserverPanel
-              agentId={selectedAgent}
-              agentLabel={agent.label}
-              agentIcon={agent.icon}
-              isActive={agent.status === 'active'}
-              onClose={closePanel}
-            />
-          ) : (
-            <TicketsTable />
-          )}
+        {selectedTicket && <TicketsDrawer />}
 
-          {selectedTicket && <TicketsDrawer />}
-
-          <Charts />
-        </main>
-      </div>
+        <Charts />
+      </main>
     </div>
   )
 }
