@@ -1,222 +1,113 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import "./ApprovalAgent.css";
 import useAgentStore from "../../stores/useAgentStore";
-import { STATUS_CLS } from "../TicketsTable/TicketsDrawer";
 
-/* Helper: convert time → "2h 10m ago" */
-function timeAgo(dateStr) {
-  if (!dateStr) return "—";
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+function ApprovalTable() {
+  const panel = useAgentStore((s) => s.panel);
+  const selectAgent = useAgentStore((s) => s.selectAgent);
+  const approveTicket = useAgentStore((s) => s.approveTicket);
 
-  if (diff < 60) return `${diff}s`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  // ✅ Load approval panel once
+  useEffect(() => {
+    selectAgent("approval");
+  }, []);
 
-  return `${Math.floor(diff / 86400)}d`;
-}
+  const tickets = panel?.queued?.items || [];
+  const loading = panel?.loading;
 
-function TicketsTable() {
-  const tickets = useAgentStore((s) => s.header.ticketsData);
-  const onOpenDrawer = useAgentStore((s) => s.openTicketDrawer);
-  const activeFilter = useAgentStore((s) => s.activeFilter);
-  const setActiveFilter = useAgentStore((s) => s.setActiveFilter);
-
-  /* ✅ APPROVE HANDLER */
-  const handleApprove = async (ticket) => {
+  /* ✅ Handle approve (store-based) */
+  const handleApprove = async (threadId) => {
     try {
-      console.log("Approving ticket:", ticket.adoTicketId);
-
-      await fetch(
-        `http://localhost:8000/api/tickets/${ticket.adoTicketId}/approve`,
-        {
-          method: "POST",
-        }
-      );
-
-      alert("Ticket Approved ✅");
-
-      // 👉 OPTIONAL: You can refetch tickets here
-      // OR update Zustand store if available
-
-    } catch (err) {
-      console.error("Approval failed:", err);
+      await approveTicket(threadId);
+      alert("Approved ✅");
+    } catch {
       alert("Approval failed ❌");
     }
   };
 
-  // ✅ Transform YOUR backend → UI
+  /* ✅ Normalize */
   const normalizedTickets = useMemo(() => {
     return (tickets || []).map((t, idx) => {
-      const prio = t.severity || "P3";
+      let action = {};
+      try {
+        action = JSON.parse(t.recommended_action || "{}");
+      } catch {}
 
       return {
-        id: t.ticket_id || `TKT-${idx}`,
-        adoTicketId: t.ticket_id,
-
-        name: t.title || "—",
-        desc: t.description || "",
-
-        prio: prio,
-        status: (t.status || "open").toUpperCase(),
-
-        age: timeAgo(t.created_at),
-        ageCls: prio === "P1" ? "crit" : prio === "P2" ? "warn" : "ok",
-
-        domain: "—",
-        source: "ADF",
-
-        owner: t.assigned_to || "Unassigned",
-
-        pipeline: t.title,
-
-        sla: "OK",
-        slABreach: "NO",
-        ticketType: 0,
-
-        raw: t,
+        id: t.thread_id || idx,
+        threadId: t.thread_id,
+        pipeline: t.pipeline_name || "—",
+        eventType: t.event_type || "—",
+        severity: t.severity || "P3",
+        status: t.status || "pending_approval",
+        action: action.action || "—",
       };
     });
   }, [tickets]);
 
-  // ✅ Filters
-  const filtered = useMemo(() => {
-    if (activeFilter === "all") return normalizedTickets;
-
-    if (activeFilter === "SLA") {
-      return normalizedTickets.filter((t) => t.slABreach === "YES");
-    }
-
-    if (activeFilter === "HUMAN") {
-      return normalizedTickets.filter((t) => t.ticketType === 1);
-    }
-
-    if (activeFilter === "SH") {
-      return normalizedTickets.filter((t) => t.ticketType === 2);
-    }
-
-    return normalizedTickets.filter((t) => t.prio === activeFilter);
-  }, [activeFilter, normalizedTickets]);
-
-  const filters = [
-    { key: "all", label: "ALL" },
-    { key: "P1", label: "P1" },
-    { key: "P2", label: "P2" },
-    { key: "P3", label: "P3" },
-    { key: "P4", label: "P4" },
-    { key: "SLA", label: "SLA BREACH" },
-    { key: "HUMAN", label: "HUMAN" },
-    { key: "SH", label: "SELF-HEALING" },
-  ];
-
   return (
     <div className="tickets-section">
-      {/* Header */}
       <div className="tickets-section-header">
-        <div className="tickets-section-title">OPEN TICKETS</div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div className="tickets-filters">
-            {filters.map((f) => (
-              <button
-                key={f.key}
-                className={`tf-btn ${
-                  activeFilter === f.key ? "active" : ""
-                }`}
-                onClick={() => setActiveFilter(f.key)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <div className="tickets-section-title">HUMAN APPROVAL</div>
       </div>
 
-      {/* Table */}
       <div className="tickets-table-wrap">
         <table className="tickets-table">
           <thead>
             <tr>
-              <th>TICKET ID</th>
               <th>PIPELINE</th>
-              <th>SOURCE</th>
-              <th>DOMAIN</th>
+              <th>EVENT TYPE</th>
               <th>PRIORITY</th>
+              <th>RECOMMENDED ACTION</th>
               <th>STATUS</th>
-              <th>AGE</th>
-              <th>OWNER</th>
-              <th>ACTION</th>
             </tr>
           </thead>
 
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: "center", padding: 12 }}>
+                  Loading...
+                </td>
+              </tr>
+            ) : normalizedTickets.length === 0 ? (
               <tr className="no-data">
-                <td colSpan={9} style={{ textAlign: "center", padding: 12 }}>
-                  No open tickets
+                <td colSpan={5} style={{ textAlign: "center", padding: 12 }}>
+                  No approval data
                 </td>
               </tr>
             ) : (
-              filtered.map((t, i) => (
+              normalizedTickets.map((t, i) => (
                 <tr
                   key={t.id}
-                  className={`tr-${t.prio.toLowerCase()}`}
+                  className={`tr-${t.severity.toLowerCase()}`}
                   style={{
                     animation: `feed-in .3s ${i * 0.04}s ease both`,
                   }}
                 >
-                  <td onClick={() => onOpenDrawer(t.raw)}>
-                    <span className="t-id">{t.adoTicketId}</span>
-                  </td>
-
-                  <td onClick={() => onOpenDrawer(t.raw)}>
-                    <div className="t-name">{t.name}</div>
-                  </td>
+                  <td>{t.pipeline}</td>
+                  <td>{t.eventType}</td>
 
                   <td>
-                    <span className="t-owner">{t.source}</span>
-                  </td>
-
-                  <td>
-                    <span className="t-owner">{t.domain}</span>
-                  </td>
-
-                  <td>
-                    <span className={`t-prio ${t.prio.toLowerCase()}`}>
-                      {t.prio}
+                    <span className={`t-prio ${t.severity.toLowerCase()}`}>
+                      {t.severity}
                     </span>
                   </td>
 
-                  <td>
-                    <span
-                      className={`t-status ${
-                        STATUS_CLS[t.status] || "ts-open"
-                      }`}
-                    >
-                      {t.status}
-                    </span>
-                  </td>
+                  <td>{t.action}</td>
 
                   <td>
-                    <span className={`t-age ${t.ageCls}`}>{t.age}</span>
-                  </td>
-
-                  <td>
-                    <span className="t-owner">{t.owner}</span>
-                  </td>
-
-                  {/* ✅ APPROVE BUTTON */}
-                  <td>
-                    {t.status === "OPEN" ? (
+                    {t.status === "pending_approval" ? (
                       <button
-                        className="approve-btn"
-                        onClick={() => handleApprove(t)}
+                        className="tf-btn active"
+                        onClick={() => handleApprove(t.threadId)}
                       >
                         Approve
                       </button>
                     ) : (
-                      <span className="approved-label">Approved</span>
+                      <span className="t-status">{t.status}</span>
                     )}
                   </td>
                 </tr>
@@ -229,4 +120,4 @@ function TicketsTable() {
   );
 }
 
-export default React.memo(TicketsTable);
+export default ApprovalTable;

@@ -209,7 +209,32 @@ const useAgentStore = create((set, get) => ({
     set((s) => ({ panel: { ...s.panel, loading: true } }));
 
     // Single API call instead of 4
-    const data = await safeFetch(`/api/agents/${id}/panel`, null);
+    let data;
+
+    if (id === "approval") {
+      data = await safeFetch("/api/approvals/pending", null);
+
+      if (!data) {
+        set((s) => ({ panel: { ...s.panel, loading: false } }));
+        return;
+      }
+
+      // ✅ FIX: map items correctly
+      set({
+        panel: {
+          queued: {
+            count: data.items?.length ?? 0,
+            items: normalizeItems(data.items),
+          },
+          inProgress: { count: 0, items: [] },
+          processed: { count: 0, items: [] },
+          liveFeed: { count: 0, items: [] },
+          loading: false,
+        },
+      });
+
+      return; // ✅ IMPORTANT
+    }
 
     if (!data) {
       set((s) => ({ panel: { ...s.panel, loading: false } }));
@@ -267,12 +292,18 @@ const useAgentStore = create((set, get) => ({
 
   connectWs: () => {
     const state = get();
+
+    // ✅ Prevent multiple connections
     if (
-      state._ws?.readyState === WebSocket.OPEN ||
-      state._ws?.readyState === WebSocket.CONNECTING
+      state._ws &&
+      (state._ws.readyState === WebSocket.OPEN ||
+        state._ws.readyState === WebSocket.CONNECTING)
     ) {
       return;
     }
+
+    // ✅ Prevent multiple reconnect timers
+    if (state._retryTimer) return;
 
     let ws;
     try {
@@ -284,70 +315,55 @@ const useAgentStore = create((set, get) => ({
     set({ _ws: ws });
 
     ws.onopen = () => {
+      console.log("✅ WS Connected");
       set({ wsConnected: true });
-      // Fetch everything fresh on connect
-      get().fetchAgents();
-      get().fetchHeader();
-      if (get().selectedAgent) get().fetchPanel();
     };
 
     ws.onmessage = (ev) => {
       try {
         const msg = JSON.parse(ev.data);
-        const { type, data } = msg;
+        const { type } = msg;
 
-        // Log event (keep last 100)
-        set((s) => ({
-          eventLog: [
-            { type, timestamp: new Date().toISOString(), data },
-            ...s.eventLog.slice(0, 99),
-          ],
-        }));
-
-        // ── header_refresh / initial_state — use inline data, NO REST calls ──
-        if (type === "header_refresh" || type === "initial_state") {
-          if (data?.pipeline || data?.tickets || data?.items) {
-            set((s) => ({
-              header: {
-                ...s.header,
-                pipeline: data.pipeline || s.header.pipeline,
-                tickets: data.tickets || s.header.tickets,
-                ticketsData: data.items || s.header.ticketsData,
-                info: data.info || s.header.info,
-              },
-            }));
-          }
-
-          if (data?.agents) {
-            const merged = mergeAgents({ items: data.agents });
-            if (merged) set({ agents: merged });
-          }
-
-          return;
-        }
-
-        // ── All other events — debounced REST fetches ──
-        // Multiple events within 300ms trigger only ONE fetch each
-
+        // ✅ Debounce Agents
         if (AGENT_REFRESH_TYPES.has(type)) {
-          clearTimeout(get()._fetchAgentsTimer);
-          const timer = setTimeout(() => get().fetchAgents(), 300);
-          set({ _fetchAgentsTimer: timer });
+          if (!get()._fetchAgentsTimer) {
+            const timer = setTimeout(() => {
+              get().fetchAgents();
+              set({ _fetchAgentsTimer: null });
+            }, 400);
+            set({ _fetchAgentsTimer: timer });
+          }
         }
 
+        // ✅ Debounce Panel
         if (PANEL_REFRESH_TYPES.has(type) && get().selectedAgent) {
-          clearTimeout(get()._fetchPanelTimer);
-          const timer = setTimeout(() => get().fetchPanel(), 300);
-          set({ _fetchPanelTimer: timer });
+          if (!get()._fetchPanelTimer) {
+            const timer = setTimeout(() => {
+              get().fetchPanel();
+              set({ _fetchPanelTimer: null });
+            }, 400);
+            set({ _fetchPanelTimer: timer });
+          }
         }
-      } catch {
-        /* ignore malformed */
-      }
+
+        if (type === "ticket_created") {
+          get().fetchHeader();
+        }
+      } catch {}
     };
 
     ws.onclose = () => {
-      set({ wsConnected: false });
-      const timer = setTimeout(() => get().connectWs(), 3000);
+      console.log("❌ WS Disconnected");
+
+      set({ wsConnected: false, _ws: null });
+
+      if (get()._retryTimer) return;
+
+      const timer = setTimeout(() => {
+        set({ _retryTimer: null });
+        get().connectWs();
+      }, 3000);
+
       set({ _retryTimer: timer });
     };
 
@@ -356,10 +372,16 @@ const useAgentStore = create((set, get) => ({
 
   disconnectWs: () => {
     const { _ws, _retryTimer, _fetchAgentsTimer, _fetchPanelTimer } = get();
+
     if (_retryTimer) clearTimeout(_retryTimer);
     if (_fetchAgentsTimer) clearTimeout(_fetchAgentsTimer);
     if (_fetchPanelTimer) clearTimeout(_fetchPanelTimer);
-    if (_ws) _ws.close();
+
+    if (_ws) {
+      _ws.onclose = null; // ✅ stop auto reconnect
+      _ws.close();
+    }
+
     set({
       _ws: null,
       _retryTimer: null,
@@ -369,9 +391,46 @@ const useAgentStore = create((set, get) => ({
     });
   },
 
+  // ✅ ADD HERE (above init)
+
+  approveTicket: async (threadId) => {
+    try {
+      console.log("🚀 Approving:", threadId);
+
+      const res = await fetch(`/api/approve/${threadId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          approved: true,
+          comment: "",
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Approve API failed");
+      }
+
+      console.log("✅ Approved");
+
+      // ✅ Refresh approval data
+      if (get().selectedAgent === "approval") {
+        get().fetchPanel("approval");
+      }
+    } catch (err) {
+      console.error("❌ Approve error:", err);
+      throw err;
+    }
+  },
+
   // ── Init / Destroy ────────────────────────────────────────────────────────
 
   init: () => {
+    if (get()._initialized) return;
+
+    set({ _initialized: true });
+
     get().fetchAgents();
     get().fetchHeader();
     get().connectWs();
